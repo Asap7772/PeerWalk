@@ -15,7 +15,7 @@ export default class Login {
         });
         if (type === 'success') {
           // Get the user's name using Facebook's Graph API
-          let response = await fetch(`https://graph.facebook.com/me?access_token=${token}`);
+          let response = await fetch(`https://graph.facebook.com/me?fields=email,name,picture&access_token=${token}`);
           this.json = await response.json();
           console.log("json =", this.json)
         } else {
@@ -25,7 +25,5 @@ export default class Login {
         alert(`Facebook Login Error: ${message}`);
       }
     }
-
-
 
 }
