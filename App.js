@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, Button, Alert, TextInput } from 'react-native';
 import Database from "./utils/database";
+import Login from "./utils/login";
 
 
 export default class App extends React.Component {
@@ -11,8 +12,15 @@ export default class App extends React.Component {
             passwordText: "654321",
             userData: {}
         };
+        this.loginObj = new Login()
         console.log("App here!");
     }
+
+    login = async () => {
+        await this.loginObj.logIn()
+        await console.log("login", this.loginObj.json)
+    }
+
     db = new Database();
     render() {
         return (
@@ -22,10 +30,16 @@ export default class App extends React.Component {
                     title="Joinwalk"
                     onPress={() => this.db.getUserWalkIDs("sbanka@berkeley.edu")}
                 />
+                <Button
+                    title="Test Login"
+                    onPress={() => this.login()}
+                />
             </View>
         );
     }
 }
+
+
 
 const styles = StyleSheet.create({
     container: {
