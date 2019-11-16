@@ -5,7 +5,6 @@ require("firebase/firestore");
 
 export default class Database {
     constructor() {
-        console.log("hi")
         // Initialize Firebase
         this.firebaseConfig = {
             apiKey: "AIzaSyBphJzFqoU1226G6k-osgkkSibiHD8Cf50",
@@ -14,7 +13,6 @@ export default class Database {
             projectId: "peerwalk-56316",
             storageBucket: "peerwalk-56316.appspot.com",
         };
-        console.log("here");
         firebase.initializeApp(this.firebaseConfig);
         this.state = {
             isReady: false
@@ -22,18 +20,20 @@ export default class Database {
     }
 
 
-    createWalk = (data) => {
-        // let newDate: firebase.firestore.Timestamp.fromDate(data[date]);
-        // delete data[date];
-        // data[date] = newDate;
-        let setDoc = this.db.collection('walks').add(data);
-        Alert.alert('Walk created successfully!');
-
-        // TODO: Update new walk ID to other collections
+    createWalk = (userID, data) => {
+        const db = firebase.firestore();
+        let time = data["Time"];
+        data["Time"] = firebase.firestore.Timestamp.fromDate(time);
+        let setDoc = db.collection('walks').add(data)
+            .then(ref => {
+                let walkID = ref.id;
+                this.joinWalk(userID,walkID);
+                Alert.alert('Walk created successfully!');
+            });
     };
     joinWalk = (userID, walkID) => {
         const db = firebase.firestore();
-        const user = db.collection("user").doc(userID);
+        const user = db.collection("users").doc(userID);
         let getDoc = user.get()
             .then(doc => {
                 if (!doc.exists) {
@@ -43,7 +43,7 @@ export default class Database {
                     let walksArr = data["Walks"];
                     walksArr.push(walkID);
                     console.log("walkID pushed: ", walkID);
-                    doc.set({Walks: walksArr}, {merge: true});
+                    user.update({Walks: walksArr});
                     console.log("Document successfully received!");
                 }
             })
@@ -60,7 +60,7 @@ export default class Database {
                     let walksArr = data["Walkers"];
                     walksArr.push(userID);
                     console.log("userID pushed: ", userID)
-                    doc.set({Walkers: walksArr}, {merge: true});
+                    walk.update({Walkers: walksArr});
                     console.log("Document successfully received!");
                 }
             })
@@ -69,9 +69,9 @@ export default class Database {
             });
     }
 
-    leaveWalk =(userID, walkID) => {
+    leaveWalk = (userID, walkID) => {
         const db = firebase.firestore();
-        const user = db.collection("user").doc(userID);
+        const user = db.collection("users").doc(userID);
         let getDoc = user.get()
             .then(doc => {
                 if (!doc.exists) {
@@ -79,9 +79,32 @@ export default class Database {
                 } else {
                     let data = doc.data();
                     let walksArr = data["Walks"];
-                    delete walksArr[walkID];
-                    console.log("walkID pushed: ", walkID)
-                    doc.set({Walks: walksArr}, {merge: true});
+                    console.log(walksArr);
+                    walksArr = walksArr.filter(function(value, index, arr){
+                        return value != walkID;
+                    })
+                    console.log("walkID deleted: ", walksArr);
+                    user.update({Walks: walksArr});
+                    console.log("Document successfully received!");
+                }
+            })
+            .catch(err => {
+                console.log('Error getting document', err);
+            });
+        const walk = db.collection("walks").doc(walkID);
+        let walkDoc = walk.get()
+            .then(doc => {
+                if (!doc.exists) {
+                    console.log('No such document!');
+                } else {
+                    let data = doc.data();
+                    let walksArr = data["Walkers"];
+                    console.log(walksArr);
+                    walksArr = walksArr.filter(function(value, index, arr){
+                        return value != userID;
+                    })
+                    console.log("userID deleted: ", walksArr)
+                    walk.update({Walkers: walksArr});
                     console.log("Document successfully received!");
                 }
             })
@@ -91,20 +114,33 @@ export default class Database {
     }
 
     getNearbyWalks = (location) => {
-        // From location get a list of 10 nearby walks with a radius of 5
+        // From location get a list of 10 nearby walks with latitude +- 0.05 degrees, longitude +- 5/(111.32*cos(latitute))
+        let km = 5;
+        let numWalks = 10;
+        const latitude = location["latitude"];
+        const latRadius = km/110.574;
+        const longRadius = km/(111.32*Math.cos(latitude));
+        const longitude = location["longitude"];
+
         const db = firebase.firestore();
         const walk = db.collection("walks");
-        let getDoc = walk.get()
-            .then(doc => {
-                if (!doc.exists) {
-                    console.log('No such document!');
-                } else {
-                    console.log('Document data:', doc.data());
-                    return doc.data()
+        let query = walk.where('start[0]', '<=', latitude+latRadius)
+            .where('start[0]', '>=', latitude-latRadius)
+            .where('start[1]', '<=', longitude+longRadius)
+            .where('start[1]', '>=', longitude-longRadius)
+            .get()
+            .then(snapshot => {
+                if (snapshot.empty) {
+                    console.log('No matching documents.');
+                    return;
                 }
+
+                snapshot.forEach(doc => {
+                    console.log(doc.id, '=>', doc.data());
+                });
             })
             .catch(err => {
-                console.log('Error getting document', err);
+                console.log('Error getting documents', err);
             });
     }
 
