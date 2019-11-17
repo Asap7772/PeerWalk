@@ -1,5 +1,5 @@
-# PeerWalk
-
+# PeerWalk 
+![alt text](https://github.com/Asap7772/PeerWalk/blob/master/logo_resized.png)
 ## What it does
 PeerWalk is an app tailored for college students, to connect with other registered students to walk back in pairs or groups. Our powerful algorithm calculates the optimum meeting spot, and matches the user with students who are close by, or are passing by the student's destination.
 
