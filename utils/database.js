@@ -113,35 +113,52 @@ export default class Database {
             });
     }
 
-    getNearbyWalks = (location) => {
-        // From location get a list of 10 nearby walks with latitude +- 0.05 degrees, longitude +- 5/(111.32*cos(latitute))
-        let km = 5;
+    distance = (lat1, lon1, lat2, lon2) =>{
+        console.log("lat1 = ", lat1)
+        console.log("lon1 = ", lon1)
+        console.log("lat2 = ", lat2)
+        console.log("lon2 = ", lon2)
+        let radius = 6371* 0.621371; // Radius of the earth in km
+        let dLat = (Math.PI/180)*(lat2-lat1);  // deg2rad below
+        let dLon = (Math.PI/180)*(lon2-lon1);
+        let a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos((Math.PI/180)*(lat1)) * Math.cos((Math.PI/180)*(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        let c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        console.log("distance = ", radius * c)
+        console.log("++++++++++++++++++++++++++++++++")
+        return radius * c;
+    }
+
+    getNearbyWalks = async (location) => {
         let numWalks = 10;
-        const latitude = location["latitude"];
+        const latitude = location["Latitude"];
+        const longitude = location["Longitude"]
+        let km = 5;
         const latRadius = km/110.574;
         const longRadius = km/(111.32*Math.cos(latitude));
-        const longitude = location["longitude"];
 
         const db = firebase.firestore();
-        const walk = db.collection("walks");
-        let query = walk.where('start[0]', '<=', latitude+latRadius)
-            .where('start[0]', '>=', latitude-latRadius)
-            .where('start[1]', '<=', longitude+longRadius)
-            .where('start[1]', '>=', longitude-longRadius)
-            .get()
-            .then(snapshot => {
-                if (snapshot.empty) {
-                    console.log('No matching documents.');
-                    return;
-                }
+        console.log(walks)
 
-                snapshot.forEach(doc => {
-                    console.log(doc.id, '=>', doc.data());
-                });
-            })
-            .catch(err => {
-                console.log('Error getting documents', err);
+        let walk_array = [];
+
+        const walks = await db.collection("walks").get().then(function(querySnapshot) {
+            querySnapshot.forEach(function(doc) {
+                console.log(doc.id, " => ", doc.data());
+                walk_array.push([doc.id, doc.data()]);
             });
+        });
+
+        let compare = (a, b) => {
+            let alat = a[1]["StartLat"]
+            let alon = a[1]["StartLong"]
+            let blat = b[1]["StartLat"]
+            let blon = b[1]["StartLong"]
+
+            return Math.abs(this.distance(location["Latitude"], location["Longitude"], alat, alon)) - Math.abs(this.distance(location["Latitude"], location["Longitude"], blat, blon))
+        }
+
+        return walk_array.sort(compare);
+
     }
 
     getUserWalkIDs = (userID) => {

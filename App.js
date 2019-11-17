@@ -61,7 +61,7 @@ export default class App extends React.Component {
                     title="GetNearbyWalks"
                     onPress={() => this.db.getNearbyWalks({
                         Latitude: 33,
-                        Longitude: 120
+                        Longitude: -120
                     })}
                 />
                 <Button
