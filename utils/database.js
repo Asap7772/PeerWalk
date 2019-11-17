@@ -28,7 +28,7 @@ export default class Database {
             .then(ref => {
                 let walkID = ref.id;
                 this.joinWalk(userID,walkID);
-                Alert.alert('Walk created successfully!');
+                console.log('Walk created successfully!');
             });
     };
     joinWalk = (userID, walkID) => {

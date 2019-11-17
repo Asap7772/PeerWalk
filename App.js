@@ -40,10 +40,12 @@ export default class App extends React.Component {
                 <Button
                     title="CreateWalk"
                     onPress={() => this.db.createWalk("sbanka@berkeley.edu",{
-                        Start: [37.00, 121.00],
-                        End: [47.00, 122.00],
+                        StartLat: 37,
+                        EndLat: 47,
+                        StartLong: 121,
+                        EndLong: 122,
                         Walkers: ["sbanka@berkeley.edu", "asap7772@berkeley.edu", "reinaw1012@berkeley.edu", "tjogani@berkeley.edu"],
-                        Time: Date(2016, 12, 17, 0, 0, 0, 0)
+                        Time: new Date(2016, 12, 17, 0, 0, 0, 0)
                     })
                     }
                 />
