@@ -137,7 +137,6 @@ export default class Database {
         const longRadius = km/(111.32*Math.cos(latitude));
 
         const db = firebase.firestore();
-        console.log(walks)
 
         let walk_array = [];
 
@@ -153,11 +152,20 @@ export default class Database {
             let alon = a[1]["StartLong"]
             let blat = b[1]["StartLat"]
             let blon = b[1]["StartLong"]
+            let dist1 = Math.abs(this.distance(location["Latitude"], location["Longitude"], alat, alon))
+            let dist2 = Math.abs(this.distance(location["Latitude"], location["Longitude"], blat, blon))
 
-            return Math.abs(this.distance(location["Latitude"], location["Longitude"], alat, alon)) - Math.abs(this.distance(location["Latitude"], location["Longitude"], blat, blon))
+            if (dist1 > dist2){
+                return 1
+            }
+            return -1
         }
 
-        return walk_array.sort(compare);
+        let sorted = walk_array.sort(compare)
+
+        console.log(sorted)
+
+        return sorted;
 
     }
 
